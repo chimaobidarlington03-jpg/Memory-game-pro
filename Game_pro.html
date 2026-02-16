@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Memory Game Pro</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+            background: linear-gradient(to right, #ff9a9e, #fad0c4);
+            color: #fff;
+        }
+        #number {
+            font-size: 60px;
+            margin: 20px;
+            font-weight: bold;
+        }
+        #timer {
+            font-size: 36px;
+            color: yellow;
+            margin-bottom: 10px;
+        }
+        input {
+            font-size: 24px;
+            padding: 5px;
+            width: 180px;
+            text-align: center;
+        }
+        #message, #score, #highScore {
+            font-size: 24px;
+            margin-top: 10px;
+        }
+        button {
+            font-size: 20px;
+            padding: 5px 15px;
+            margin-top: 10px;
+            margin-right: 5px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        #startBtn { background-color: #28a745; color: white; }
+        #resetBtn { background-color: #dc3545; color: white; }
+    </style>
+</head>
+<body>
+
+<h1>Memory Game Pro Max</h1>
+<div id="score">Score: 0</div>
+<div id="highScore">High Score: 0</div>
+<div id="timer"></div>
+<div id="number"></div>
+<input type="text" id="userInput" placeholder="Enter number">
+<br>
+<button id="startBtn">Start Game</button>
+<button id="resetBtn">Reset High Score</button>
+<div id="message"></div>
+
+<script>
+let currentNumber = "";
+let score = 0;
+let roundActive = false;
+let gameStarted = false;
+let digits = 4; 
+let countdownInterval;
+
+// load high score from localStorage
+let highScore = localStorage.getItem("memoryHighScore") || 0;
+document.getElementById('highScore').innerText = `High Score: ${highScore}`;
+
+function showNumber() {
+    let min = Math.pow(10, digits - 1);
+    let max = Math.pow(10, digits) - 1;
+    currentNumber = Math.floor(Math.random() * (max - min + 1)) + min;
+
+    document.getElementById('number').innerText = currentNumber;
+    document.getElementById('message').innerText = "";
+    document.getElementById('userInput').value = "";
+    document.getElementById('userInput').disabled = false;
+    roundActive = true;
+
+    // countdown timer
+    let timeLeft = 3;
+    document.getElementById('timer').innerText = `Time: ${timeLeft}`;
+    clearInterval(countdownInterval);
+    countdownInterval = setInterval(() => {
+        timeLeft--;
+        if(timeLeft > 0) {
+            document.getElementById('timer').innerText = `Time: ${timeLeft}`;
+        } else {
+            clearInterval(countdownInterval);
+            document.getElementById('number').innerText = "";
+            document.getElementById('timer').innerText = "";
+        }
+    }, 1000);
+}
+
+function checkNumber() {
+    if(!roundActive) return;
+    const input = document.getElementById('userInput').value;
+    if(input === "") return;
+
+    if(input === currentNumber.toString()) {
+        score++;
+        document.getElementById('message').innerText = "Correct! 🔥";
+
+        if(score % 3 === 0) digits++;
+    } else {
+        document.getElementById('message').innerText = `Wrong ❌ The number was ${currentNumber}`;
+        score = 0;
+        digits = 4;
+    }
+
+    document.getElementById('score').innerText = `Score: ${score}`;
+
+    if(score > highScore) {
+        highScore = score;
+        localStorage.setItem("memoryHighScore", highScore);
+        document.getElementById('highScore').innerText = `High Score: ${highScore}`;
+    }
+
+    document.getElementById('userInput').disabled = true;
+    roundActive = false;
+
+    setTimeout(showNumber, 2000);
+}
+
+function startGame() {
+    if(gameStarted) return;
+    gameStarted = true;
+    document.getElementById('startBtn').disabled = true;
+    score = 0;
+    digits = 4;
+    document.getElementById('score').innerText = `Score: ${score}`;
+    showNumber();
+}
+
+function resetHighScore() {
+    highScore = 0;
+    localStorage.setItem("memoryHighScore", highScore);
+    document.getElementById('highScore').innerText = `High Score: ${highScore}`;
+    document.getElementById('message').innerText = "High Score Reset! 🔄";
+}
+
+// listen for Enter key
+document.getElementById('userInput').addEventListener("keypress", function(event) {
+    if(event.key === "Enter") {
+        checkNumber();
+    }
+});
+
+document.getElementById('startBtn').addEventListener("click", startGame);
+document.getElementById('resetBtn').addEventListener("click", resetHighScore);
+</script>
+
+</body>
+</html>
